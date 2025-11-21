@@ -17,17 +17,17 @@ public class BeerServiceImpl implements BeerService {
     }
 
     @Override
-    public Beer create(Beer beer) {
+    public Beer saveBeer(Beer beer) {
         return beerRepository.save(beer);
     }
 
     @Override
-    public Optional<Beer> findById(Integer id) {
+    public Optional<Beer> getBeerById(Integer id) {
         return beerRepository.findById(id);
     }
 
     @Override
-    public List<Beer> findAll() {
+    public List<Beer> getAllBeers() {
         return beerRepository.findAll();
     }
 }

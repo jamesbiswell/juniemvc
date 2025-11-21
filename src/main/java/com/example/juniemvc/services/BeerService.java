@@ -7,9 +7,9 @@ import java.util.Optional;
 
 public interface BeerService {
 
-    Beer create(Beer beer);
+    Beer saveBeer(Beer beer);
 
-    Optional<Beer> findById(Integer id);
+    Optional<Beer> getBeerById(Integer id);
 
-    List<Beer> findAll();
+    List<Beer> getAllBeers();
 }

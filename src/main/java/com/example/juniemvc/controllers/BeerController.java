@@ -2,6 +2,7 @@ package com.example.juniemvc.controllers;
 
 import com.example.juniemvc.entities.Beer;
 import com.example.juniemvc.services.BeerService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -10,7 +11,7 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/beer")
+@RequestMapping("/api/v1/beers")
 public class BeerController {
 
     private final BeerService beerService;
@@ -20,19 +21,20 @@ public class BeerController {
     }
 
     @PostMapping
-    public ResponseEntity<Beer> create(@RequestBody Beer beer, UriComponentsBuilder uriBuilder) {
-        Beer saved = beerService.create(beer);
-        URI location = uriBuilder.path("/api/v1/beer/{id}").buildAndExpand(saved.getId()).toUri();
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<Beer> createBeer(@RequestBody Beer beer, UriComponentsBuilder uriBuilder) {
+        Beer saved = beerService.saveBeer(beer);
+        URI location = uriBuilder.path("/api/v1/beers/{id}").buildAndExpand(saved.getId()).toUri();
         return ResponseEntity.created(location).body(saved);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Beer> getById(@PathVariable Integer id) {
-        return ResponseEntity.of(beerService.findById(id));
+    public ResponseEntity<Beer> getBeerById(@PathVariable Integer id) {
+        return ResponseEntity.of(beerService.getBeerById(id));
     }
 
     @GetMapping
-    public ResponseEntity<List<Beer>> listAll() {
-        return ResponseEntity.ok(beerService.findAll());
+    public ResponseEntity<List<Beer>> getAllBeers() {
+        return ResponseEntity.ok(beerService.getAllBeers());
     }
 }
