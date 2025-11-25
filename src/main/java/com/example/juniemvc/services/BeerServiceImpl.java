@@ -30,4 +30,26 @@ public class BeerServiceImpl implements BeerService {
     public List<Beer> getAllBeers() {
         return beerRepository.findAll();
     }
+
+    @Override
+    public Optional<Beer> updateBeer(Integer id, Beer beer) {
+        return beerRepository.findById(id).map(existing -> {
+            // copy updatable fields
+            existing.setBeerName(beer.getBeerName());
+            existing.setBeerStyle(beer.getBeerStyle());
+            existing.setUpc(beer.getUpc());
+            existing.setQuantityOnHand(beer.getQuantityOnHand());
+            existing.setPrice(beer.getPrice());
+            return beerRepository.save(existing);
+        });
+    }
+
+    @Override
+    public boolean deleteBeerById(Integer id) {
+        if (beerRepository.existsById(id)) {
+            beerRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
 }

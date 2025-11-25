@@ -20,6 +20,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -96,5 +98,49 @@ class BeerControllerTest {
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].id", is(1)))
                 .andExpect(jsonPath("$[1].beerName", is("Space Dog")));
+    }
+
+    @Test
+    void testUpdateBeerFound() throws Exception {
+        Beer update = sampleBeer(null);
+        update.setBeerName("Updated Cat");
+        Beer updated = sampleBeer(5);
+        updated.setBeerName("Updated Cat");
+
+        given(beerService.updateBeer(eq(5), any(Beer.class))).willReturn(Optional.of(updated));
+
+        mockMvc.perform(put("/api/v1/beers/{id}", 5)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(update)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(5)))
+                .andExpect(jsonPath("$.beerName", is("Updated Cat")));
+    }
+
+    @Test
+    void testUpdateBeerNotFound() throws Exception {
+        Beer update = sampleBeer(null);
+        given(beerService.updateBeer(eq(42), any(Beer.class))).willReturn(Optional.empty());
+
+        mockMvc.perform(put("/api/v1/beers/{id}", 42)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(update)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void testDeleteBeerNoContent() throws Exception {
+        given(beerService.deleteBeerById(eq(7))).willReturn(true);
+
+        mockMvc.perform(delete("/api/v1/beers/{id}", 7))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void testDeleteBeerNotFound() throws Exception {
+        given(beerService.deleteBeerById(eq(77))).willReturn(false);
+
+        mockMvc.perform(delete("/api/v1/beers/{id}", 77))
+                .andExpect(status().isNotFound());
     }
 }
