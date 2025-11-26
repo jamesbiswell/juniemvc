@@ -1,7 +1,8 @@
 package com.example.juniemvc.controllers;
 
-import com.example.juniemvc.entities.Beer;
+import com.example.juniemvc.models.BeerDto;
 import com.example.juniemvc.services.BeerService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,24 +16,24 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/v1/beers")
-public class BeerController {
+class BeerController {
 
     private final BeerService beerService;
     
-    public BeerController(BeerService beerService) {
+    BeerController(BeerService beerService) {
         this.beerService = beerService;
     }
 
     /**
      * Creates a new Beer
-     * @param beer        the beer payload to create
+     * @param beerDto     the beer payload to create
      * @param uriBuilder  builder to construct the Location URI of the created resource
      * @return 201 Created with the persisted Beer in the body and Location header
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<Beer> createBeer(@RequestBody Beer beer, UriComponentsBuilder uriBuilder) {
-        Beer saved = beerService.saveBeer(beer);
+    public ResponseEntity<BeerDto> createBeer(@Valid @RequestBody BeerDto beerDto, UriComponentsBuilder uriBuilder) {
+        BeerDto saved = beerService.saveBeer(beerDto);
         URI location = uriBuilder.path("/api/v1/beers/{id}").buildAndExpand(saved.getId()).toUri();
         return ResponseEntity.created(location).body(saved);
     }
@@ -44,7 +45,7 @@ public class BeerController {
      * @return 200 OK with Beer if found, otherwise 404 Not Found
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Beer> getBeerById(@PathVariable Integer id) {
+    public ResponseEntity<BeerDto> getBeerById(@PathVariable Integer id) {
         return ResponseEntity.of(beerService.getBeerById(id));
     }
 
@@ -54,7 +55,7 @@ public class BeerController {
      * @return 200 OK with a list of beers (possibly empty)
      */
     @GetMapping
-    public ResponseEntity<List<Beer>> getAllBeers() {
+    public ResponseEntity<List<BeerDto>> getAllBeers() {
         return ResponseEntity.ok(beerService.getAllBeers());
     }
 
@@ -63,12 +64,12 @@ public class BeerController {
      * Uses Optional semantics: if the id is not recognized, returns 404.
      *
      * @param id   the id of the beer to update
-     * @param beer the incoming beer data with updated fields
+     * @param beerDto the incoming beer data with updated fields
      * @return 200 OK with the updated Beer if present, otherwise 404 Not Found
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Beer> updateBeer(@PathVariable Integer id, @RequestBody Beer beer) {
-        return ResponseEntity.of(beerService.updateBeer(id, beer));
+    public ResponseEntity<BeerDto> updateBeer(@PathVariable Integer id, @Valid @RequestBody BeerDto beerDto) {
+        return ResponseEntity.of(beerService.updateBeer(id, beerDto));
     }
 
     /**

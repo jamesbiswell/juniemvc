@@ -1,15 +1,18 @@
 package com.example.juniemvc.services;
 
 import com.example.juniemvc.entities.Beer;
+import com.example.juniemvc.mappers.BeerMapper;
+import com.example.juniemvc.models.BeerDto;
 import com.example.juniemvc.repositories.BeerRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
+import org.mapstruct.factory.Mappers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,6 +21,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
+import org.mockito.ArgumentCaptor;
 
 @ExtendWith(MockitoExtension.class)
 class BeerServiceImplTest {
@@ -25,10 +30,22 @@ class BeerServiceImplTest {
     @Mock
     BeerRepository beerRepository;
 
-    @InjectMocks
     BeerServiceImpl beerService;
 
-    Beer sample(Integer id) {
+    BeerMapper mapper = Mappers.getMapper(BeerMapper.class);
+
+    BeerDto sampleDto(Integer id) {
+        return BeerDto.builder()
+                .id(id)
+                .beerName("Galaxy Cat")
+                .beerStyle("IPA")
+                .upc("12345")
+                .quantityOnHand(12)
+                .price(new BigDecimal("9.99"))
+                .build();
+    }
+
+    Beer sampleEntity(Integer id) {
         return Beer.builder()
                 .id(id)
                 .beerName("Galaxy Cat")
@@ -41,25 +58,59 @@ class BeerServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        // no-op
+        beerService = new BeerServiceImpl(beerRepository, mapper);
     }
 
     @Test
     void saveBeer() {
-        Beer toSave = sample(null);
-        Beer saved = sample(1);
-        given(beerRepository.save(any(Beer.class))).willReturn(saved);
+        BeerDto toCreate = sampleDto(null);
+        Beer savedEntity = sampleEntity(1);
+        given(beerRepository.save(any(Beer.class))).willReturn(savedEntity);
 
-        Beer result = beerService.saveBeer(toSave);
+        BeerDto result = beerService.saveBeer(toCreate);
         assertThat(result.getId()).isEqualTo(1);
         verify(beerRepository).save(any(Beer.class));
     }
 
     @Test
-    void getBeerById_found() {
-        given(beerRepository.findById(eq(10))).willReturn(Optional.of(sample(10)));
+    void saveBeer_ignoresServerManagedFields() {
+        BeerDto toCreate = sampleDto(null);
+        // Client attempts to set server-managed fields
+        toCreate.setId(99);
+        toCreate.setCreatedDate(LocalDateTime.now().minusDays(1));
+        toCreate.setUpdateDate(LocalDateTime.now().minusDays(1));
 
-        Optional<Beer> res = beerService.getBeerById(10);
+        given(beerRepository.save(any(Beer.class))).willAnswer(inv -> {
+            Beer arg = inv.getArgument(0);
+            // Simulate DB assigning id and timestamps, but do not mutate the argument
+            Beer persisted = new Beer();
+            persisted.setId(1);
+            persisted.setBeerName(arg.getBeerName());
+            persisted.setBeerStyle(arg.getBeerStyle());
+            persisted.setUpc(arg.getUpc());
+            persisted.setQuantityOnHand(arg.getQuantityOnHand());
+            persisted.setPrice(arg.getPrice());
+            persisted.setCreatedDate(LocalDateTime.now());
+            persisted.setUpdateDate(LocalDateTime.now());
+            return persisted;
+        });
+
+        beerService.saveBeer(toCreate);
+
+        ArgumentCaptor<Beer> captor = ArgumentCaptor.forClass(Beer.class);
+        verify(beerRepository, times(1)).save(captor.capture());
+        Beer savedArg = captor.getValue();
+        // Ensure server-managed fields were not copied from client DTO
+        assertThat(savedArg.getId()).isNull();
+        assertThat(savedArg.getCreatedDate()).isNull();
+        assertThat(savedArg.getUpdateDate()).isNull();
+    }
+
+    @Test
+    void getBeerById_found() {
+        given(beerRepository.findById(eq(10))).willReturn(Optional.of(sampleEntity(10)));
+
+        Optional<BeerDto> res = beerService.getBeerById(10);
         assertThat(res).isPresent();
         assertThat(res.get().getId()).isEqualTo(10);
     }
@@ -68,39 +119,53 @@ class BeerServiceImplTest {
     void getBeerById_notFound() {
         given(beerRepository.findById(eq(999))).willReturn(Optional.empty());
 
-        Optional<Beer> res = beerService.getBeerById(999);
+        Optional<BeerDto> res = beerService.getBeerById(999);
         assertThat(res).isNotPresent();
     }
 
     @Test
     void getAllBeers() {
-        given(beerRepository.findAll()).willReturn(List.of(sample(1), sample(2)));
+        given(beerRepository.findAll()).willReturn(List.of(sampleEntity(1), sampleEntity(2)));
 
-        List<Beer> list = beerService.getAllBeers();
+        List<BeerDto> list = beerService.getAllBeers();
         assertThat(list).hasSize(2);
-        assertThat(list).extracting(Beer::getId).containsExactly(1, 2);
+        assertThat(list).extracting(BeerDto::getId).containsExactly(1, 2);
     }
 
     @Test
     void updateBeer_found() {
-        Beer existing = sample(5);
-        Beer update = sample(null);
+        Beer existing = sampleEntity(5);
+        existing.setCreatedDate(LocalDateTime.of(2024,1,1,0,0));
+        existing.setUpdateDate(LocalDateTime.of(2024,1,2,0,0));
+        BeerDto update = sampleDto(null);
         update.setBeerName("Updated Cat");
+        // Client attempts to override server-managed fields
+        update.setId(123);
+        update.setCreatedDate(LocalDateTime.of(2030,1,1,0,0));
+        update.setUpdateDate(LocalDateTime.of(2030,1,2,0,0));
 
         given(beerRepository.findById(eq(5))).willReturn(Optional.of(existing));
         given(beerRepository.save(any(Beer.class))).willAnswer(inv -> inv.getArgument(0));
 
-        Optional<Beer> res = beerService.updateBeer(5, update);
+        Optional<BeerDto> res = beerService.updateBeer(5, update);
         assertThat(res).isPresent();
         assertThat(res.get().getBeerName()).isEqualTo("Updated Cat");
+
+        ArgumentCaptor<Beer> captor = ArgumentCaptor.forClass(Beer.class);
+        verify(beerRepository).save(captor.capture());
+        Beer savedArg = captor.getValue();
+        // id should remain 5, created/update dates should be unchanged from existing
+        assertThat(savedArg.getId()).isEqualTo(5);
+        assertThat(savedArg.getCreatedDate()).isEqualTo(LocalDateTime.of(2024,1,1,0,0));
+        assertThat(savedArg.getUpdateDate()).isEqualTo(LocalDateTime.of(2024,1,2,0,0));
     }
 
     @Test
     void updateBeer_notFound() {
-        Beer update = sample(null);
+        BeerDto update = sampleDto(null);
         given(beerRepository.findById(eq(55))).willReturn(Optional.empty());
 
-        Optional<Beer> res = beerService.updateBeer(55, update);
+        Optional<BeerDto> res = beerService.updateBeer(55, update);
         assertThat(res).isNotPresent();
     }
 

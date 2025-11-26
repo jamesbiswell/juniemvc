@@ -1,46 +1,51 @@
 package com.example.juniemvc.services;
 
 import com.example.juniemvc.entities.Beer;
+import com.example.juniemvc.mappers.BeerMapper;
+import com.example.juniemvc.models.BeerDto;
 import com.example.juniemvc.repositories.BeerRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
-public class BeerServiceImpl implements BeerService {
+class BeerServiceImpl implements BeerService {
 
     private final BeerRepository beerRepository;
+    private final BeerMapper beerMapper;
 
-    public BeerServiceImpl(BeerRepository beerRepository) {
+    BeerServiceImpl(BeerRepository beerRepository, BeerMapper beerMapper) {
         this.beerRepository = beerRepository;
+        this.beerMapper = beerMapper;
     }
 
     @Override
-    public Beer saveBeer(Beer beer) {
-        return beerRepository.save(beer);
+    public BeerDto saveBeer(BeerDto beerDto) {
+        Beer toSave = beerMapper.toEntity(beerDto);
+        Beer saved = beerRepository.save(toSave);
+        return beerMapper.toDto(saved);
     }
 
     @Override
-    public Optional<Beer> getBeerById(Integer id) {
-        return beerRepository.findById(id);
+    public Optional<BeerDto> getBeerById(Integer id) {
+        return beerRepository.findById(id).map(beerMapper::toDto);
     }
 
     @Override
-    public List<Beer> getAllBeers() {
-        return beerRepository.findAll();
+    public List<BeerDto> getAllBeers() {
+        return beerRepository.findAll().stream()
+                .map(beerMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Optional<Beer> updateBeer(Integer id, Beer beer) {
+    public Optional<BeerDto> updateBeer(Integer id, BeerDto beerDto) {
         return beerRepository.findById(id).map(existing -> {
-            // copy updatable fields
-            existing.setBeerName(beer.getBeerName());
-            existing.setBeerStyle(beer.getBeerStyle());
-            existing.setUpc(beer.getUpc());
-            existing.setQuantityOnHand(beer.getQuantityOnHand());
-            existing.setPrice(beer.getPrice());
-            return beerRepository.save(existing);
+            beerMapper.updateEntityFromDto(beerDto, existing);
+            Beer updated = beerRepository.save(existing);
+            return beerMapper.toDto(updated);
         });
     }
 

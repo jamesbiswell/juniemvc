@@ -1,6 +1,6 @@
 package com.example.juniemvc.services;
 
-import com.example.juniemvc.entities.Beer;
+import com.example.juniemvc.models.BeerDto;
 
 import java.util.List;
 import java.util.Optional;
@@ -8,36 +8,36 @@ import java.util.Optional;
 public interface BeerService {
 
     /**
-     * Persists a new Beer entity.
+     * Persists a new Beer.
      *
-     * @param beer the beer to save
-     * @return the saved Beer with generated id
+     * @param beerDto the beer to save
+     * @return the saved BeerDto with generated id
      */
-    Beer saveBeer(Beer beer);
+    BeerDto saveBeer(BeerDto beerDto);
 
     /**
      * Retrieves a Beer by its id.
      *
      * @param id the beer id
-     * @return Optional containing Beer if found, otherwise empty
+     * @return Optional containing BeerDto if found, otherwise empty
      */
-    Optional<Beer> getBeerById(Integer id);
+    Optional<BeerDto> getBeerById(Integer id);
 
     /**
      * Returns all beers.
      *
-     * @return list of beers, possibly empty
+     * @return list of BeerDto, possibly empty
      */
-    List<Beer> getAllBeers();
+    List<BeerDto> getAllBeers();
 
     /**
-     * Updates the Beer identified by id using values from the provided Beer object.
+     * Updates the Beer identified by id using values from the provided BeerDto.
      *
      * @param id   the id of the Beer to update
-     * @param beer the new values to apply
-     * @return Optional containing the updated Beer if the id exists, otherwise empty
+     * @param beerDto the new values to apply
+     * @return Optional containing the updated BeerDto if the id exists, otherwise empty
      */
-    Optional<Beer> updateBeer(Integer id, Beer beer);
+    Optional<BeerDto> updateBeer(Integer id, BeerDto beerDto);
 
     /**
      * Deletes a beer by id.
