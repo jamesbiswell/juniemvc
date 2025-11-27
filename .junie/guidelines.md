@@ -182,3 +182,20 @@ logger.atDebug()
 * **Multiple outputs and formats:** Direct logs to consoles, rolling files, databases, or remote systems, and choose formats like JSON for seamless ingestion into ELK, Loki, or other log-analysis tools.
 
 * **Better tooling and analysis:** Structured logs and controlled log levels make it easier to filter noise, automate alerts, and visualize application behavior in real time.
+
+## 15. Database Migrations with Flyway
+* Keep your database schema changes under version control using Flyway.
+* Default migration directory: place SQL files under `src/main/resources/db/migration` so Spring Boot/Flyway will auto-detect and run them on startup.
+* Versioned migration naming: use `V{version}__Description.sql` (double underscore between version and description). Examples:
+  - `V1__init_schema.sql`
+  - `V1.1__add_beer_table.sql` (dots are allowed in versions)
+* Repeatable migrations: name them `R__Description.sql` for items like views, functions, or reference data that may change over time (rerun on checksum change).
+* Spring Boot integration: adding `org.flywaydb:flyway-core` to the classpath enables migrations automatically. Configure via `spring.flyway.*` properties if needed.
+
+**Explanation:**
+* Flyway ensures consistent, traceable schema evolution across all environments. By following the default directory and naming conventions, the application will migrate the database automatically at startup and record applied migrations in the `flyway_schema_history` table.
+* Repeatable migrations are useful for items like views, functions, or reference data that may change over time. Flyway will rerun them on checksum change, ensuring that the database is always in a consistent state.
+* Migration scripts in the standard location are automatically detected and executed in version order when the application starts, providing version control for your database schema.
+* Spring Boot integration makes it easy to configure Flyway via `application.properties` or `application.yml`.
+* For more information, please refer to [Flyway Documentation](https://flywaydb.org/documentation/concepts/migrations).
+* For more comprehensive database migration guidelines, please refer [Flyway Best Practices](https://flywaydb.org/documentation/bestpractices).
