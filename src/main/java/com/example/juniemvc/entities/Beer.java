@@ -12,6 +12,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import jakarta.persistence.OneToMany;
+import java.util.ArrayList;
+import java.util.List;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.proxy.HibernateProxy;
@@ -52,6 +55,12 @@ public class Beer {
 
     @UpdateTimestamp
     private LocalDateTime updateDate;
+
+    // Optional back-reference to BeerOrderLine; no cascade from Beer side
+    @OneToMany(mappedBy = "beer")
+    @ToString.Exclude
+    @Builder.Default
+    private List<BeerOrderLine> beerOrderLines = new ArrayList<>();
     
     @Override
     public final boolean equals(Object o) {

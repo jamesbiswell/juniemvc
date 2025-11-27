@@ -1,16 +1,6 @@
-
-# JPA Implementation Guide with Lombok for Beer Order System
-
-Based on the provided ERD, I'll outline detailed instructions for implementing the entities and their relationships using JPA with Lombok.
-
-## Entity Overview
-
-The ERD shows three main entities:
-1. **Beer** - Contains beer product information
-2. **BeerOrder** - Represents a customer order
-3. **BeerOrderLine** - Represents line items in an order (connecting Beer and BeerOrder)
-
 ## Implementation Instructions
+Your task is to update the project with the given JPA entities and to implement RESTful CRUD style controllers for 
+the new JPA entities. 
 
 ### 1. Common Base Entity Structure
 
@@ -137,6 +127,30 @@ public class BeerOrderLine extends BaseEntity {
 }
 ```
 
+### 5. Create DTOs
+In the model package create DTO POJOs matching the properties of the added JPA entities. 
+
+### 6. Create Mapstruct Mappers
+Add the necessary mappers for type conversions to and from DTOs / JPA entities. 
+
+### 7. Spring Data Repositories
+Add Spring Data Repositories for the new JPA entities.
+
+### 7. Implement the Service Layer
+Create new service interfaces and implementations to support CRUD operations initiated in controllers.
+
+### 8. Create new Spring MVC Controllers
+Create the necessary controllers for the new entities added to the project
+
+### 9. Test Coverage
+Add unit tests for the created components. Verify tests are passing.
+
+Provide Tests for:
+- mappers
+- repositories
+- services
+- controllers 
+
 ## Implementation Notes
 
 1. **Lombok Annotations**:
@@ -169,5 +183,3 @@ public class BeerOrderLine extends BaseEntity {
 5. **Data Types**:
     - Use `BigDecimal` for monetary values with appropriate precision and scale
     - Use `LocalDateTime` for date/time fields
-
-This implementation follows JPA best practices and leverages Lombok to reduce boilerplate code while maintaining proper entity relationships as shown in the ERD.

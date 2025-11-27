@@ -1,9 +1,22 @@
-## Implementation Instructions
+### What the ERD says (relationships)
+- One BeerOrder has many BeerOrderLine rows.
+- Each BeerOrderLine belongs to exactly one BeerOrder.
+- Each BeerOrderLine refers to exactly one Beer.
+- Optionally, a Beer can be referenced by many BeerOrderLine rows.
 
-The requirements are listed to update the project with the given JPA entities and enums, and to implement RESTful CRUD style controllers for
-the new JPA entities.
+This is a classic 1–N from `BeerOrder` to `BeerOrderLine`, plus another 1–N from `Beer` to `BeerOrderLine`.
 
-### 1. Entity classes (with Lombok)
+### Recommended mapping decisions
+- Use `jakarta.persistence` (Spring Boot 3+).
+- Use `@Version` for optimistic locking as shown in the ERD.
+- Use `LocalDateTime` timestamps with automatic auditing via Hibernate annotations (`@CreationTimestamp`, `@UpdateTimestamp`) or JPA callbacks.
+- Keep collections lazy (default) and `@ManyToOne(fetch = LAZY)` to prevent N+1s.
+- Cascade from `BeerOrder -> beerOrderLines` only. Do not cascade to `Beer` through order lines.
+- Maintain the bidirectional association (`BeerOrder <-> BeerOrderLine`) with helper methods on the aggregate root (`BeerOrder`).
+- Use enums for `status` and `beerStyle` but store as strings: `@Enumerated(EnumType.STRING)`.
+- Avoid Lombok cycles in `toString`/`equals` by excluding back-references.
+
+### Entity classes (with Lombok)
 
 #### `Beer`
 ```java
@@ -185,66 +198,77 @@ public class BeerOrderLine {
 }
 ```
 
-#### `Enums`
+#### Enums (example)
 ```java
 public enum BeerStyle { LAGER, PILSNER, STOUT, IPA, PALE_ALE, SAISON }
 public enum OrderStatus { NEW, VALIDATION_PENDING, VALIDATED, ALLOCATION_PENDING, ALLOCATED, PICKED_UP, CANCELLED }
 public enum LineStatus { NEW, ALLOCATED, BACKORDERED, CANCELLED }
 ```
 
-### 2. Create DTOs
-In the model package create DTO POJOs matching the properties of the added JPA entities.
+### JSON serialization tip (if exposing entities)
+If you ever serialize entities directly (not recommended), prevent recursion:
+- Use `@JsonManagedReference` on `BeerOrder.beerOrderLines` and `@JsonBackReference` on `BeerOrderLine.beerOrder`.
+- Or simply `@JsonIgnore` for back-refs. Prefer mapping to DTOs as per the provided guidelines.
 
-### 3. Create Mapstruct Mappers
-Add the necessary mappers for type conversions to and from DTOs / JPA entities.
+### Database schema notes
+- Tables: `beer`, `beer_order`, `beer_order_line`.
+- FKs: `beer_order_line.beer_order_id -> beer_order.id`; `beer_order_line.beer_id -> beer.id`.
+- Indexes: create indexes on `beer_order_id`, `beer_id`, and `upc` (unique) for lookup performance.
 
-### 4. Spring Data Repositories
-Add Spring Data Repositories for the new JPA entities.
+### Repositories (Spring Data JPA)
+```java
+public interface BeerRepository extends JpaRepository<Beer, Integer> {}
+public interface BeerOrderRepository extends JpaRepository<BeerOrder, Integer> {}
+public interface BeerOrderLineRepository extends JpaRepository<BeerOrderLine, Integer> {}
+```
 
-### 5. Implement the Service Layer
-Create new service interfaces and implementations to support CRUD operations initiated in controllers.
+### Service-layer transaction boundary
+- Wrap create/update flows in a single `@Transactional` service method.
+- Example: create an order, add lines via `addLine()`, persist `BeerOrder` only; cascading will persist the lines.
 
-### 6. Create new Spring MVC Controllers
-Create the necessary controllers for the new entities added to the project
+```java
+@Service
+class BeerOrderService {
+    private final BeerOrderRepository orders;
+    private final BeerRepository beers;
 
-### 7. Test Coverage
-Add unit tests for the created components. Verify tests are passing.
+    BeerOrderService(BeerOrderRepository orders, BeerRepository beers) {
+        this.orders = orders;
+        this.beers = beers;
+    }
 
-Provide tests for:
-- mappers
-- repositories
-- services
-- controllers
+    @Transactional
+    BeerOrder createOrder(String customerRef, List<OrderItemDto> items) {
+        BeerOrder order = new BeerOrder();
+        order.setCustomerRef(customerRef);
+        order.setStatus(OrderStatus.NEW);
 
-## Implementation Notes
+        for (OrderItemDto i : items) {
+            Beer beer = beers.getReferenceById(i.beerId());
+            BeerOrderLine line = BeerOrderLine.builder()
+                    .beer(beer)
+                    .orderQuantity(i.qty())
+                    .status(LineStatus.NEW)
+                    .build();
+            order.addLine(line);
+        }
+        return orders.save(order);
+    }
+}
+```
 
-1. **Lombok Annotations**:
-    - `@Getter` and `@Setter`: Generate getters and setters
-    - `@NoArgsConstructor`: Generate a no-args constructor
-    - `@AllArgsConstructor`: Generate a constructor with all fields
-    - `@Builder`: Enable the builder pattern
-    - `@ToString.Exclude` and `@EqualsAndHashCode.Exclude`: Prevent circular references in toString() and equals()/hashCode()
+### Testing the mapping quickly
+- Persist a `Beer`, create a `BeerOrder`, add one or more `BeerOrderLine` (hooked to the beer), `orders.save(order)`; verify that lines are saved and carry FK values.
+- Fetch `BeerOrder` and ensure `beerOrder.getBeerOrderLines()` loads lazily within a transaction.
 
-2. **JPA Annotations**:
-    - `@Entity`: Mark class as JPA entity
-    - `@MappedSuperclass`: Base class for entities
-    - `@Id`: Primary key
-    - `@GeneratedValue`: Auto-generate primary key
-    - `@Version`: Optimistic locking
-    - `@Column`: Column properties
-    - `@OneToMany` and `@ManyToOne`: Relationship mappings
-    - `@JoinColumn`: Foreign key column
-    - `@CreationTimestamp` and `@UpdateTimestamp`: Automatic timestamp management
+### Common pitfalls to avoid
+- Forgetting to set both sides of the association; always use `BeerOrder.addLine(line)`.
+- Cascading from `BeerOrderLine` to `Beer` (don’t do this—beers are independent master data).
+- Using eager fetch on `@ManyToOne` and causing N+1 queries.
+- Infinite recursion in Lombok `toString` and JSON serialization—exclude back-refs.
 
-3. **Bidirectional Relationship Management**:
-    - Use helper methods in BeerOrder to maintain both sides of the relationship
-    - Use `mappedBy` to indicate the owning side of relationships
-    - Use `CascadeType.ALL` and `orphanRemoval = true` for parent-child relationships
-
-4. **Collection Initialization**:
-    - Initialize collections to empty sets to avoid null pointer exceptions
-    - Use `@Builder.Default` to ensure collections are initialized when using the builder pattern
-
-5. **Data Types**:
-    - Use `BigDecimal` for monetary values with appropriate precision and scale
-    - Use `LocalDateTime` for date/time fields
+### Summary
+Implement the ERD with:
+- `BeerOrder (1) -> (N) BeerOrderLine` via `@OneToMany(mappedBy = "beerOrder", cascade = PERSIST|MERGE|REMOVE, orphanRemoval = true)`.
+- `BeerOrderLine (N) -> (1) Beer` via `@ManyToOne(fetch = LAZY)`.
+- Use Lombok to reduce boilerplate and helper methods to maintain the bidirectional link. Persist only the aggregate root (`BeerOrder`) in write flows.
