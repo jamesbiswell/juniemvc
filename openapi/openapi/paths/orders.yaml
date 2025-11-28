@@ -1,0 +1,68 @@
+get:
+  tags: [Order]
+  summary: List beer orders
+  operationId: listOrders
+  parameters:
+    - name: page
+      in: query
+      description: Zero-based page index.
+      required: false
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+        default: 0
+    - name: size
+      in: query
+      description: Page size (maximum 200).
+      required: false
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 200
+        default: 25
+  responses:
+    '200':
+      description: Successful list of orders.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/BeerOrderPage.yaml
+    '400':
+      description: Invalid pagination parameters.
+post:
+  tags: [Order]
+  summary: Create a new beer order
+  operationId: createOrder
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/BeerOrder.yaml
+        examples:
+          sample:
+            summary: Minimal order with two lines
+            value:
+              customerRef: "PO-2025-000123"
+              paymentAmount: 199.99
+              lines:
+                - beerId: 1
+                  orderQuantity: 12
+                - beerId: 2
+                  orderQuantity: 6
+  responses:
+    '201':
+      description: Order created.
+      headers:
+        Location:
+          description: URL of the created order resource.
+          schema:
+            type: string
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/BeerOrder.yaml
+    '400':
+      description: Validation error on request body.

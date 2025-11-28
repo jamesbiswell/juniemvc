@@ -23,7 +23,8 @@ public class BeerOrderLineDto {
 
     @Min(0)
     private Integer quantityAllocated;
-
+    
+    // enum status of the line
     private LineStatus status;
     private LocalDateTime createdDate;
     private LocalDateTime updateDate;

@@ -56,6 +56,8 @@ tags:
     description: "This is a tag description."
   - name: Beer
     description: "CRUD operations for Beer resources."
+  - name: Order
+    description: "CRUD operations for Beer Orders and managing their lines."
 x-tagGroups:
   - name: General
     tags:
@@ -90,6 +92,14 @@ paths:
     $ref: paths/pathItemWithExamples.yaml
   '/echo':
     $ref: 'paths/echo.yaml'
+  '/orders':
+    $ref: 'paths/orders.yaml'
+  '/orders/{id}':
+    $ref: 'paths/orders_{id}.yaml'
+  '/orders/{orderId}/lines':
+    $ref: 'paths/orders_{orderId}_lines.yaml'
+  '/orders/{orderId}/lines/{lineId}':
+    $ref: 'paths/orders_{orderId}_lines_{lineId}.yaml'
 components:
   securitySchemes:
     main_auth:

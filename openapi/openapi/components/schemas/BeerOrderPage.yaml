@@ -1,0 +1,37 @@
+type: object
+description: Paginated response wrapper for BeerOrder results.
+properties:
+  content:
+    type: array
+    items:
+      $ref: './BeerOrder.yaml'
+  page:
+    type: integer
+    format: int32
+    minimum: 0
+    description: Zero-based page index.
+    example: 0
+  size:
+    type: integer
+    format: int32
+    minimum: 1
+    description: The requested page size (max 200).
+    example: 25
+  totalElements:
+    type: integer
+    format: int64
+    minimum: 0
+    description: Total number of elements.
+    example: 57
+  totalPages:
+    type: integer
+    format: int32
+    minimum: 0
+    description: Total number of pages.
+    example: 3
+required:
+  - content
+  - page
+  - size
+  - totalElements
+  - totalPages

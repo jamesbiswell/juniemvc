@@ -1,0 +1,51 @@
+type: object
+description: Beer order aggregate containing header information and order lines.
+properties:
+  id:
+    type: integer
+    format: int32
+    readOnly: true
+    description: Server-generated identifier of the order.
+    example: 42
+  version:
+    type: integer
+    format: int32
+    description: Optimistic locking version.
+    example: 0
+  customerRef:
+    type: string
+    description: Optional client-provided reference or PO number.
+    maxLength: 255
+    example: "PO-2025-000123"
+  paymentAmount:
+    type: number
+    format: double
+    description: Optional payment amount submitted by the client. Must be non-negative.
+    minimum: 0
+    example: 199.99
+  status:
+    $ref: './OrderStatus.yaml'
+  createdDate:
+    type: string
+    format: date-time
+    readOnly: true
+    description: Timestamp when the order was created.
+    example: '2025-01-15T10:00:00Z'
+  updateDate:
+    type: string
+    format: date-time
+    readOnly: true
+    description: Timestamp when the order was last updated.
+    example: '2025-01-15T10:15:30Z'
+  lines:
+    type: array
+    description: Collection of line items in this order.
+    items:
+      $ref: './BeerOrderLine.yaml'
+    example:
+      - beerId: 1
+        orderQuantity: 12
+      - beerId: 2
+        orderQuantity: 6
+required:
+  - lines

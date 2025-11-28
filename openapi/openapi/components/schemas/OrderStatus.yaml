@@ -1,0 +1,11 @@
+type: string
+description: Order workflow status.
+enum:
+  - NEW
+  - VALIDATION_PENDING
+  - VALIDATED
+  - ALLOCATION_PENDING
+  - ALLOCATED
+  - PICKED_UP
+  - CANCELLED
+example: NEW

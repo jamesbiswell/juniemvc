@@ -1,0 +1,98 @@
+get:
+  tags: [Order]
+  summary: Get beer order by id
+  operationId: getOrderById
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  responses:
+    '200':
+      description: Beer order found.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/BeerOrder.yaml
+    '404':
+      description: Order not found.
+    '400':
+      description: Invalid id supplied.
+put:
+  tags: [Order]
+  summary: Update an existing beer order
+  operationId: updateOrder
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/BeerOrder.yaml
+  responses:
+    '200':
+      description: Updated beer order.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/BeerOrder.yaml
+    '404':
+      description: Order not found.
+    '400':
+      description: Validation error on request body.
+    '409':
+      description: Conflict (e.g., optimistic locking failure).
+patch:
+  tags: [Order]
+  summary: Patch an existing beer order
+  operationId: patchOrder
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/BeerOrder.yaml
+  responses:
+    '200':
+      description: Patched beer order.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/BeerOrder.yaml
+    '404':
+      description: Order not found.
+    '400':
+      description: Validation error on request body.
+delete:
+  tags: [Order]
+  summary: Delete beer order
+  operationId: deleteOrder
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int32
+  responses:
+    '204':
+      description: Order deleted.
+    '404':
+      description: Order not found.
+    '400':
+      description: Invalid id supplied.

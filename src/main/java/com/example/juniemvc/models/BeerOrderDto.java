@@ -15,17 +15,25 @@ import java.util.List;
 @Data
 @Builder(toBuilder = true)
 public class BeerOrderDto {
+    //read only
     private Integer id;
+    
     private Integer version;
-
+    
+    //reference information from customer
     @Size(max = 255)
     private String customerRef;
 
     @DecimalMin(value = "0.0", inclusive = true)
     private BigDecimal paymentAmount;
-
+    
+    // enum status of the order
     private OrderStatus status;
+    
+    // read only created date
     private LocalDateTime createdDate;
+    
+    // read only update date
     private LocalDateTime updateDate;
 
     @Builder.Default

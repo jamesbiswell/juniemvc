@@ -1,0 +1,8 @@
+type: string
+description: Order line allocation status.
+enum:
+  - NEW
+  - ALLOCATED
+  - BACKORDERED
+  - CANCELLED
+example: NEW
