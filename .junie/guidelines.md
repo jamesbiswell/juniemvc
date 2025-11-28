@@ -199,3 +199,53 @@ logger.atDebug()
 * Spring Boot integration makes it easy to configure Flyway via `application.properties` or `application.yml`.
 * For more information, please refer to [Flyway Documentation](https://flywaydb.org/documentation/concepts/migrations).
 * For more comprehensive database migration guidelines, please refer [Flyway Best Practices](https://flywaydb.org/documentation/bestpractices).
+
+## 16. Project OpenAPI Documentation
+This project maintains its REST API contract using an OpenAPI 3.1 definition and Redocly tooling.
+
+Where it lives
+- Location: `openapi/openapi/openapi.yaml` is the root of the API definition.
+- Redocly configuration: `openapi/redocly.yaml`.
+- NPM scripts and tooling: `openapi/package.json`.
+
+How paths are organized and named
+- Path operations are split into separate files under `openapi/openapi/paths/` and referenced from the root `openapi.yaml` using `$ref`.
+- File names are derived from the API path to make them predictable:
+  - Exact path segments generally map directly to a file with the same base name.
+    - Example: `/echo` → `paths/echo.yaml` and referenced as `'/echo': { $ref: 'paths/echo.yaml' }`.
+    - Example: `/user` → `paths/user.yaml`.
+    - Example: `/pathItem` → `paths/pathItem.yaml`.
+  - Paths containing templated variables keep the variable name in braces, replacing the slash structure with an underscore between the static segment and the variable for readability.
+    - Example: `/users/{username}` → `paths/users_{username}.yaml` and referenced as `'/users/{username}': { $ref: 'paths/users_{username}.yaml' }`.
+  - Multi-segment paths may use a concise, descriptive file name rather than the full concatenation if clarity is improved.
+    - Example in this repo: `/user/list` → `paths/user-status.yaml`.
+
+How components are defined and referenced
+- Reusable components live under `openapi/openapi/components/` in subfolders by type:
+  - `schemas/` for Schema Objects (e.g., `components/schemas/User.yaml`).
+  - `headers/` for Header Objects (e.g., `components/headers/ExpiresAfter.yaml`).
+  - Other standard folders may include `responses/`, `parameters/`, `requestBodies/`, `examples/`, `links/`, `callbacks/`, and `securitySchemes/`.
+- Referencing components:
+  - From within `paths/*.yaml`, use a relative `$ref` to the component file.
+    - Example: in `paths/echo.yaml`, the response header references `../components/headers/ExpiresAfter.yaml`.
+  - From the root `openapi.yaml`, reference component files from the spec root.
+    - Example: the webhook schema references `components/schemas/User.yaml`.
+- Inline components are also supported where appropriate. For example, `components.securitySchemes` are defined inline inside `openapi.yaml` in this project (see `main_auth`, `api_key`, and `basic_auth`).
+
+Preview, build, and test the spec
+- Prerequisite: Node.js 18+ (or compatible LTS) installed.
+- Navigate to the `openapi` directory before running commands.
+  - First-time setup: `npm install`
+  - Lint (test) the OpenAPI specification: `npm test`
+    - This runs Redocly CLI linting (as configured in `openapi/package.json`) to validate the definition and references.
+  - Optional: Preview the docs locally: `npm start` (serves a live preview using Redocly).
+  - Optional: Produce a bundled artifact: `npm run build` (outputs `dist/bundle.yaml`).
+
+Examples from the repository
+- Root path references (from `openapi/openapi/openapi.yaml`):
+  - `'/echo': { $ref: 'paths/echo.yaml' }`
+  - `'/users/{username}': { $ref: 'paths/users_{username}.yaml' }`
+- Component usage from a path file (from `openapi/openapi/paths/echo.yaml`):
+  - Response header: `X-Expires-After: { $ref: ../components/headers/ExpiresAfter.yaml }`.
+- Component usage from root (from `openapi/openapi/openapi.yaml`):
+  - Webhook request body schema: `{ $ref: 'components/schemas/User.yaml' }`.
