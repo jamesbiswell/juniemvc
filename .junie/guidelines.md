@@ -191,6 +191,8 @@ logger.atDebug()
   - `V1.1__add_beer_table.sql` (dots are allowed in versions)
 * Repeatable migrations: name them `R__Description.sql` for items like views, functions, or reference data that may change over time (rerun on checksum change).
 * Spring Boot integration: adding `org.flywaydb:flyway-core` to the classpath enables migrations automatically. Configure via `spring.flyway.*` properties if needed.
+* Use H2 compliant SQL syntax for database migrations.
+* When altering tables to add a property with a foreign key constraint, add the new column first and then add the foreign key constraint in a second SQL statement.
 
 **Explanation:**
 * Flyway ensures consistent, traceable schema evolution across all environments. By following the default directory and naming conventions, the application will migrate the database automatically at startup and record applied migrations in the `flyway_schema_history` table.
@@ -249,3 +251,20 @@ Examples from the repository
   - Response header: `X-Expires-After: { $ref: ../components/headers/ExpiresAfter.yaml }`.
 - Component usage from root (from `openapi/openapi/openapi.yaml`):
   - Webhook request body schema: `{ $ref: 'components/schemas/User.yaml' }`.
+
+## 17. Use Project Lombok
+* Use Lombok to reduce boilerplate code.
+* Enable annotation processing for your IDE to generate boilerplate code for you.
+* When adding builder to a class, if the class extends another class, add `@SuperBuilder` for the builder.
+
+## 18. Use Mapstruct for Type Conversions
+* Use Mapstruct to convert between domain objects and DTOs.
+* Use `@Mapper` to configure the mapping between the two classes.
+* Use `@Mapping` to configure the mapping between the two fields.
+* After modifying a Mapper, recompile the project to generate the new Mapper implementation.
+* Use Mappers to update existing entities.
+
+## 19. Service Operations
+* When updating existing entities, use Mappers to update existing entities. The entity should be fetched from the database
+  and then updated using the mapper prior to saving the entity back to the database.
+
