@@ -44,16 +44,6 @@ externalDocs:
   description: "Find out how to create a GitHub repo for your OpenAPI definition."
   url: 'https://github.com/Redocly/create-openapi-repo'
 tags:
-  - name: Echo
-    description: "Example echo operations."
-  - name: User
-    description: "Example actions on user accounts."
-  - name: Admin
-    description: "Example operations reserved for administrators."
-  - name: Info
-    description: "Example operations for retrieving information."
-  - name: Tag
-    description: "This is a tag description."
   - name: Beer
     description: "CRUD operations for Beer resources."
   - name: Order
@@ -61,10 +51,8 @@ tags:
 x-tagGroups:
   - name: General
     tags:
-      - User
-      - Info
-      - Echo
       - Beer
+      - Order
   - name: Administration
     tags:
       - Admin
@@ -80,18 +68,6 @@ paths:
     $ref: 'paths/beers.yaml'
   '/beers/{id}':
     $ref: 'paths/beers_{id}.yaml'
-  '/users/{username}':
-    $ref: 'paths/users_{username}.yaml'
-  '/user':
-    $ref: 'paths/user.yaml'
-  '/user/list':
-    $ref: 'paths/user-status.yaml'
-  /pathItem:
-    $ref: paths/pathItem.yaml
-  /pathItemWithExamples:
-    $ref: paths/pathItemWithExamples.yaml
-  '/echo':
-    $ref: 'paths/echo.yaml'
   '/orders':
     $ref: 'paths/orders.yaml'
   '/orders/{id}':
@@ -120,21 +96,3 @@ components:
       type: http
       scheme: basic
 security: []
-webhooks:
-  userInfo:
-    post:
-      summary: New user webhook
-      description: "Information about a new user in the system."
-      operationId: userInfo
-      tags:
-        - Info
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: 'components/schemas/User.yaml'
-      responses:
-        '200':
-          description: "Successfully retrieved information about a new user."
-      security:
-        - api_key: []
