@@ -54,12 +54,15 @@ tags:
     description: "Example operations for retrieving information."
   - name: Tag
     description: "This is a tag description."
+  - name: Beer
+    description: "CRUD operations for Beer resources."
 x-tagGroups:
   - name: General
     tags:
       - User
       - Info
       - Echo
+      - Beer
   - name: Administration
     tags:
       - Admin
@@ -71,6 +74,10 @@ servers:
         description: Your tenant id
   - url: https://example.com/api/v1
 paths:
+  '/beers':
+    $ref: 'paths/beers.yaml'
+  '/beers/{id}':
+    $ref: 'paths/beers_{id}.yaml'
   '/users/{username}':
     $ref: 'paths/users_{username}.yaml'
   '/user':
@@ -102,6 +109,7 @@ components:
     basic_auth:
       type: http
       scheme: basic
+security: []
 webhooks:
   userInfo:
     post:

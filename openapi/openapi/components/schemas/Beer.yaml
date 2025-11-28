@@ -1,0 +1,68 @@
+title: Beer
+type: object
+description: Beer resource exchanged by the API. Server-managed fields (id, version, createdDate, updateDate) are read-only.
+properties:
+  id:
+    type: integer
+    format: int32
+    description: Unique identifier of the beer.
+    readOnly: true
+    examples: [ 1 ]
+  version:
+    type: integer
+    format: int32
+    description: Version number used for optimistic locking.
+    readOnly: true
+    examples: [ 0 ]
+  beerName:
+    type: string
+    description: Human-friendly name of the beer.
+    minLength: 1
+    examples: [ "Galaxy Cat" ]
+  beerStyle:
+    type: string
+    description: Style of the beer (e.g., IPA, PALE_ALE, LAGER).
+    minLength: 1
+    examples: [ "IPA" ]
+  upc:
+    type: string
+    description: Universal Product Code of the beer. Provided by producer/retailer.
+    minLength: 1
+    examples: [ "12345" ]
+  quantityOnHand:
+    type: integer
+    format: int32
+    description: Current number of items in stock.
+    minimum: 0
+    examples: [ 12 ]
+  price:
+    type: number
+    format: decimal
+    description: Unit price of the beer.
+    minimum: 0
+    examples: [ 9.99 ]
+  createdDate:
+    type: string
+    format: date-time
+    description: Timestamp when the beer was created.
+    readOnly: true
+    examples: [ "2025-01-15T10:00:00Z" ]
+  updateDate:
+    type: string
+    format: date-time
+    description: Timestamp when the beer was last updated.
+    readOnly: true
+    examples: [ "2025-01-16T12:34:56Z" ]
+required:
+  - beerName
+  - beerStyle
+  - upc
+  - quantityOnHand
+  - price
+examples:
+  - id: 1
+    beerName: Galaxy Cat
+    beerStyle: IPA
+    upc: "12345"
+    quantityOnHand: 12
+    price: 9.99

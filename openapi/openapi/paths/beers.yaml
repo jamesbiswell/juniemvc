@@ -1,0 +1,42 @@
+get:
+  tags: [ Beer ]
+  summary: List beers
+  operationId: listBeers
+  description: Returns all beers.
+  responses:
+    '200':
+      description: A list of beers.
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/Beer.yaml
+    '400':
+      description: Bad request.
+post:
+  tags: [ Beer ]
+  summary: Create a beer
+  operationId: createBeer
+  description: Creates a new beer. Server-managed fields are ignored if provided.
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/Beer.yaml
+  responses:
+    '201':
+      description: Beer created.
+      headers:
+        Location:
+          description: URI of the created resource.
+          schema:
+            type: string
+            format: uri
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Beer.yaml
+    '400':
+      description: Validation error.

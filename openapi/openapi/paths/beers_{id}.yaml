@@ -1,0 +1,49 @@
+parameters:
+  - name: id
+    in: path
+    required: true
+    description: Beer identifier.
+    schema:
+      type: integer
+      format: int32
+get:
+  tags: [ Beer ]
+  summary: Get beer by id
+  operationId: getBeer
+  responses:
+    '200':
+      description: Beer found.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Beer.yaml
+    '404':
+      description: Beer not found.
+put:
+  tags: [ Beer ]
+  summary: Update beer
+  operationId: updateBeer
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/Beer.yaml
+  responses:
+    '200':
+      description: Updated beer.
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Beer.yaml
+    '404':
+      description: Beer not found.
+delete:
+  tags: [ Beer ]
+  summary: Delete beer
+  operationId: deleteBeer
+  responses:
+    '204':
+      description: Beer deleted.
+    '404':
+      description: Beer not found.
